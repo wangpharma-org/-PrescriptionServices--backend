@@ -5,10 +5,11 @@ import { MedicineSnapshotService } from './application/medicinesnapshot.service'
 import { MedicineSnapshotRepository } from './infrastructure/medicinesnapshot.repository';
 import { MEDICINE_SNAPSHOT_REPOSITORY } from './domain/ports/medicinesnapshot.repository.interface';
 import { MedicineSnapshotEventsConsumer } from './presentation/medicinesnapshot-events.consumer';
+import { MedicineSnapshotController } from './presentation/medicinesnapshot.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([MedicineSnapshot])],
-  controllers: [MedicineSnapshotEventsConsumer],
+  controllers: [MedicineSnapshotEventsConsumer, MedicineSnapshotController],
   providers: [
     MedicineSnapshotService,
     { provide: MEDICINE_SNAPSHOT_REPOSITORY, useClass: MedicineSnapshotRepository },

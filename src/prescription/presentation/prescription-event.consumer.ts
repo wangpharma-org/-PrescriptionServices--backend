@@ -15,10 +15,12 @@ export class PrescriptionEventsConsumer {
     async handleStockReservedEvent(@Payload() message: any) {
         const { prescriptionId, reserveStatus } = message;
 
-        if (reserveStatus === 'RESERVED') {
-            await this.prescriptionService.updatePrescriptionStatus(prescriptionId, PrescriptionStatus.WAITING_FOR_CART);
-        } else {
+        console.log(`Received stock.reserved.v1 event for prescriptionId: ${prescriptionId} with reserveStatus: ${reserveStatus}`);
+
+        if (reserveStatus === 'FAILED') {
             await this.prescriptionService.updatePrescriptionStatus(prescriptionId, PrescriptionStatus.HOLD);
+        } else {
+            await this.prescriptionService.updatePrescriptionStatus(prescriptionId, PrescriptionStatus.WAITING_FOR_CART);
         }
     }
 

@@ -16,6 +16,12 @@ export class MedicineSnapshotEventsConsumer {
     async handleMedicineCreatedEvent(@Payload() message: MedicineCreatedEventDto): Promise<void> {
         this.logger.log(`Received medicine.created.v1 event for medicine: ${message.medicineId}`);
         
+        const existing = await this.medicineSnapshotService.findById(message.medicineId);
+        if (existing) {
+            this.logger.warn(`MedicineSnapshot with ID ${message.medicineId} already exists. Skipping creation.`);
+            return;
+        }
+        
         await this.medicineSnapshotService.create({
             id: message.medicineId,
             medicineCode: message.info.medicineCode,
