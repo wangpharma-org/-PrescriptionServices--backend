@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrescriptionModule } from './prescription/prescription.module';
 import { PrescriptionItemModule } from './prescription-item/prescription-item.module';
+import { MedicineSnapshotModule } from './medicinesnapshot/medicinesnapshot.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -33,6 +34,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     }),
     PrescriptionModule,
     PrescriptionItemModule,
+    MedicineSnapshotModule,
   ],
   controllers: [AppController],
   providers: [
