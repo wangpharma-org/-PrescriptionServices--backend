@@ -14,23 +14,35 @@ export enum PrescriptionStatus {
 
 @Entity({ name: 'prescriptions' })
 export class Prescription extends BaseEntity {
-  @Column({ name: 'patient_id', type: 'uuid' })
-  patientId: string;
+  @Column({ name: 'vn', type: 'varchar', length: 255 })
+  vn: string;
+  
+  @Column({ name: 'hn', type: 'varchar', length: 255 })
+  hn: string;
 
-  @Column({ name: 'doctor_id', type: 'uuid' })
-  doctorId: string;
+  @Column({ name: 'patient_name`', type: 'varchar', length: 255 })
+  patientName: string;
 
-  @Column({ name: 'room_id', type: 'uuid' })
+  @Column({ name: 'patient_code', type: 'varchar', length: 255 })
+  patientCode: string;
+
+  @Column({ name: 'age', type: 'int' })
+  age: number;
+
+  @Column({ name: 'gender', type: 'varchar', length: 50 })
+  gender: string;
+
+  @Column({ name: 'phone_number', type: 'varchar', length: 20 })
+  phoneNumber: string;
+
+  @Column({ name: 'address', type: 'varchar', length: 500})
+  address: string;
+
+  @Column({ name: 'room_id', type: 'uuid', nullable: true })
   roomId: string;
-
-  @Column({ name: 'diagnosis', type: 'text', nullable: true })
-  diagnosis: string | null;
 
   @OneToMany(() => PrescriptionItem, (item) => item.prescription)
   items: PrescriptionItem[];
-
-  @Column({ name: 'notes', type: 'text', nullable: true })
-  notes: string | null;
 
   @Column({
     name: 'status',
@@ -39,10 +51,4 @@ export class Prescription extends BaseEntity {
     default: PrescriptionStatus.CREATED,
   })
   status: PrescriptionStatus;
-
-  @Column({ name: 'issued_at', type: 'timestamp' })
-  issuedAt: Date;
-
-  @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
-  expiresAt: Date | null;
 }

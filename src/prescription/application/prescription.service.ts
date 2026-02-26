@@ -10,7 +10,6 @@ import {
   type IPrescriptionRepository,
 } from '../domain/ports/prescription.repository.interface';
 import { Prescription, PrescriptionStatus } from '../domain/prescription.entity';
-import { CreatePrescriptionDto } from '../presentation/dto/create-prescription.dto';
 import { UpdatePrescriptionDto } from '../presentation/dto/update-prescription.dto';
 import { FindPrescriptionsQueryDto } from '../presentation/dto/find-prescriptions-query.dto';
 import {
@@ -22,6 +21,9 @@ import { DataSource, FindOptionsWhere, In } from 'typeorm';
 import { ClientKafka } from '@nestjs/microservices/client/client-kafka';
 import { PrescriptionItem } from 'src/prescription-item/domain/prescription-item.entity';
 import { canTransitionStatus } from '../domain/prescription.policy';
+import { type IMedicineSnapshotRepository, MEDICINE_SNAPSHOT_REPOSITORY } from 'src/medicinesnapshot/domain/ports/medicinesnapshot.repository.interface';
+import { CreatePrescriptionDto } from '../presentation/dto/create-prescription.dto';
+import { MedicineSnapshot } from 'src/medicinesnapshot/domain/medicinesnapshot.entity';
 
 @Injectable()
 export class PrescriptionService {
@@ -30,6 +32,8 @@ export class PrescriptionService {
   constructor(
     @Inject(PRESCRIPTION_REPOSITORY)
     private readonly prescriptionRepository: IPrescriptionRepository,
+    @Inject(MEDICINE_SNAPSHOT_REPOSITORY)
+    private readonly medicineSnapshotRepository: IMedicineSnapshotRepository,
     @Inject('KAFKA_SERVICE')
     private readonly kafkaClient: ClientKafka,
     private readonly dataSource: DataSource,
@@ -39,29 +43,42 @@ export class PrescriptionService {
     return this.dataSource.transaction(async (manager) => {
       const prescriptionRepo = manager.getRepository(Prescription);
       const itemRepo = manager.getRepository(PrescriptionItem);
+      const medicineSnapshotRepo = manager.getRepository(MedicineSnapshot)
 
       const prescription = prescriptionRepo.create({
-        patientId: dto.patientId,
-        doctorId: dto.doctorId,
-        diagnosis: dto.diagnosis ?? null,
-        notes: dto.notes ?? null,
+        vn: dto.vn,
+        hn: dto.hn,
+        patientName: dto.patientName,
+        patientCode: dto.patientCode,
+        age: dto.age,
+        gender: dto.gender,
+        phoneNumber: dto.phoneNumber,
+        address: dto.address,
+        roomId: dto.roomId,
         status: PrescriptionStatus.CREATED,
-        issuedAt: new Date(dto.issuedAt),
-        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
       });
 
       const savedPrescription = await prescriptionRepo.save(prescription);
 
-      const items = dto.items.map((item) =>
-        itemRepo.create({
-          prescriptionId: savedPrescription.id,
-          medicationName: item.medicationName,
-          dosage: item.dosage,
-          frequency: item.frequency,
-          duration: item.duration,
-          quantity: item.quantity ?? null,
-          unit: item.unit ?? null,
-          instructions: item.instructions ?? null,
+      const items = await Promise.all(
+        dto.items.map(async (item) => {
+          const medicineInfo =
+            await medicineSnapshotRepo.findOne({ where: { id: item.medicineId } });
+          
+          this.logger.log(`medicineInfo: ${JSON.stringify(medicineInfo)}`);
+          this.logger.log(`Fetched medicine snapshot for medicine ID ${item.medicineId}: ${medicineInfo ? 'FOUND' : 'NOT FOUND'}`);
+          if (!medicineInfo) {
+            this.logger.warn(`MedicineSnapshot with ID ${item.medicineId} not found for prescription item in prescription ID ${savedPrescription.id}`);
+          }
+
+          return itemRepo.create({
+            prescriptionId: savedPrescription.id,
+            medicineCode: medicineInfo?.medicineCode ?? 'UNKNOWN',
+            medicineName: medicineInfo?.medicineName_en ?? 'UNKNOWN',
+            quantity: item.quantity ?? null,
+            unit: item.unit ?? null,
+            instructions: item.instructions ?? null,
+          });
         }),
       );
 
@@ -91,15 +108,14 @@ export class PrescriptionService {
     const { skip, take } = buildPaginationOptions(page, limit);
 
     const where: FindOptionsWhere<Prescription> = {};
-    if (patientId) where.patientId = patientId;
-    if (doctorId) where.doctorId = doctorId;
     if (status) where.status = status;
 
     const [data, total] = await this.prescriptionRepository.findAndCount({
       where,
       skip,
       take,
-      order: { issuedAt: 'DESC' },
+      relations: { items: true },
+      order: { createdAt: 'DESC' },
     });
 
     return { data, meta: buildPaginationMeta(total, page, limit) };
@@ -121,17 +137,12 @@ export class PrescriptionService {
   async update(id: string, dto: UpdatePrescriptionDto): Promise<Prescription> {
     const prescription = await this.findById(id);
 
-    if (dto.diagnosis !== undefined) prescription.diagnosis = dto.diagnosis;
-    if (dto.notes !== undefined) prescription.notes = dto.notes;
     if (dto.status !== undefined) {
       if (!canTransitionStatus(prescription.status, dto.status)) {
         this.logger.warn(`Invalid status transition from ${prescription.status} to ${dto.status} for prescription ID ${prescription.id}`);
         return prescription;
       }
       prescription.status = dto.status;
-    }
-    if (dto.expiresAt !== undefined) {
-      prescription.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : null;
     }
 
     return this.prescriptionRepository.save(prescription);

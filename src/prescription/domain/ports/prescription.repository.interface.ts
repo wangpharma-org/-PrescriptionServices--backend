@@ -3,8 +3,6 @@ import { Prescription } from '../prescription.entity';
 
 export interface IPrescriptionRepository {
   findById(id: string): Promise<Prescription | null>;
-  findByPatientId(patientId: string): Promise<Prescription[]>;
-  findByDoctorId(doctorId: string): Promise<Prescription[]>;
   findAndCount(
     options: FindManyOptions<Prescription>,
   ): Promise<[Prescription[], number]>;

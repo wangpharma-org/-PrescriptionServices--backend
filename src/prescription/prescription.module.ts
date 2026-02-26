@@ -7,9 +7,11 @@ import { PrescriptionService } from './application/prescription.service';
 import { PrescriptionRepository } from './infrastructure/prescription.repository';
 import { PRESCRIPTION_REPOSITORY } from './domain/ports/prescription.repository.interface';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { MEDICINE_SNAPSHOT_REPOSITORY } from 'src/medicinesnapshot/domain/ports/medicinesnapshot.repository.interface';
+import { PrescriptionEventsConsumer } from './presentation/prescription-event.consumer';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Prescription, PrescriptionItem]),
+  imports: [TypeOrmModule.forFeature([Prescription, PrescriptionItem],),
     ClientsModule.register([
       {
         name: 'KAFKA_SERVICE',
@@ -23,10 +25,11 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         },
       },
     ]),],
-  controllers: [PrescriptionController],
+  controllers: [PrescriptionController, PrescriptionEventsConsumer],
   providers: [
     PrescriptionService,
     { provide: PRESCRIPTION_REPOSITORY, useClass: PrescriptionRepository },
+    { provide: MEDICINE_SNAPSHOT_REPOSITORY, useClass: PrescriptionRepository }, 
   ],
   exports: [PrescriptionService],
 })

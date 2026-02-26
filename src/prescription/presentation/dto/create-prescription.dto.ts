@@ -1,68 +1,66 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMinSize,
   IsArray,
-  IsDateString,
-  IsEnum,
+  IsInt,
   IsNotEmpty,
-  IsOptional,
   IsString,
-  IsUUID,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { PrescriptionStatus } from '../../domain/prescription.entity';
-import { CreatePrescriptionItemDto } from '../../../prescription-item/presentation/dto/create-prescription-item.dto';
+import { CreatePrescriptionItemByPrescriptionDto } from '../../../prescription-item/presentation/dto/create-prescription-item.dto';
 
 export class CreatePrescriptionDto {
-  @ApiProperty({
-    example: '123e4567-e89b-12d3-a456-426614174000',
-    type: 'string',
-  })
-  @IsUUID('4')
-  @IsNotEmpty()
-  patientId: string;
-
-  @ApiProperty({
-    example: '223e4567-e89b-12d3-a456-426614174001',
-    type: 'string',
-  })
-  @IsUUID('4')
-  @IsNotEmpty()
-  doctorId: string;
-
-  @ApiPropertyOptional({ example: 'J06.9 Acute upper respiratory infection', type: 'string' })
-  @IsOptional()
+  @ApiProperty({ description: 'Visit Number' })
   @IsString()
-  diagnosis?: string;
-
-  @ApiPropertyOptional({ example: 'Follow up in 1 week.', type: 'string' })
-  @IsOptional()
-  @IsString()
-  notes?: string;
-
-  @ApiPropertyOptional({
-    enum: PrescriptionStatus,
-    default: PrescriptionStatus.CREATED,
-  })
-  @IsOptional()
-  @IsEnum(PrescriptionStatus)
-  status?: PrescriptionStatus;
-
-  @ApiProperty({ example: '2026-02-23T00:00:00.000Z', type: 'string' })
-  @IsDateString()
   @IsNotEmpty()
-  issuedAt: string;
+  vn: string;
 
-  @ApiPropertyOptional({ example: '2026-03-23T00:00:00.000Z', type: 'string' })
-  @IsOptional()
-  @IsDateString()
-  expiresAt?: string;
+  @ApiProperty({ description: 'Hospital Number' })
+  @IsString()
+  @IsNotEmpty()
+  hn: string;
 
-  @ApiProperty({ type: [CreatePrescriptionItemDto] })
+  @ApiProperty({ description: 'Patient name' })
+  @IsString()
+  @IsNotEmpty()
+  patientName: string;
+
+  @ApiProperty({ description: 'Patient code' })
+  @IsString()
+  @IsNotEmpty()
+  patientCode: string;
+
+  @ApiProperty({ description: 'Patient age' })
+  @IsInt()
+  @Min(0)
+  age: number;
+
+  @ApiProperty({ description: 'Patient gender' })
+  @IsString()
+  @IsNotEmpty()
+  gender: string;
+
+  @ApiProperty({ description: 'Patient phone number' })
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @ApiProperty({ description: 'Patient address' })
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @ApiProperty({ description: 'Room ID (optional)' })
+  @IsString()
+  @IsNotEmpty()
+  roomId?: string;
+  
+  @ApiProperty({ type: [CreatePrescriptionItemByPrescriptionDto] })
   @IsArray()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
-  @Type(() => CreatePrescriptionItemDto)
-  items: CreatePrescriptionItemDto[];
+  @Type(() => CreatePrescriptionItemByPrescriptionDto)
+  items: CreatePrescriptionItemByPrescriptionDto[];
 }

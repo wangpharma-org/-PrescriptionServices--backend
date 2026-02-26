@@ -12,16 +12,12 @@ export class PrescriptionRepository implements IPrescriptionRepository {
   ) {}
 
   findById(id: string): Promise<Prescription | null> {
-    return this.repository.findOneBy({ id });
+    return this.repository.findOne({
+      where: { id },
+      relations: { items: true },
+    });
   }
 
-  findByPatientId(patientId: string): Promise<Prescription[]> {
-    return this.repository.findBy({ patientId });
-  }
-
-  findByDoctorId(doctorId: string): Promise<Prescription[]> {
-    return this.repository.findBy({ doctorId });
-  }
 
   findAndCount(
     options: FindManyOptions<Prescription>,
