@@ -6,9 +6,23 @@ import { PrescriptionController } from './presentation/prescription.controller';
 import { PrescriptionService } from './application/prescription.service';
 import { PrescriptionRepository } from './infrastructure/prescription.repository';
 import { PRESCRIPTION_REPOSITORY } from './domain/ports/prescription.repository.interface';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Prescription, PrescriptionItem])],
+  imports: [TypeOrmModule.forFeature([Prescription, PrescriptionItem]),
+    ClientsModule.register([
+      {
+        name: 'KAFKA_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'prescription-service',
+            brokers: ['localhost:9092'],
+          },
+          producerOnlyMode: true,
+        },
+      },
+    ]),],
   controllers: [PrescriptionController],
   providers: [
     PrescriptionService,

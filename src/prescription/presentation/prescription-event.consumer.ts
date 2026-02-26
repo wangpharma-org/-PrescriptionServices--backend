@@ -1,4 +1,4 @@
-import { Controller, Inject } from "@nestjs/common";
+import { Controller, Inject, Logger } from "@nestjs/common";
 import { ClientKafka } from "@nestjs/microservices/client/client-kafka";
 import { PrescriptionService } from "../application/prescription.service";
 import { EventPattern } from "@nestjs/microservices/decorators/event-pattern.decorator";
@@ -8,9 +8,7 @@ import { PrescriptionStatus } from "../domain/prescription.entity";
 @Controller()
 export class PrescriptionEventsConsumer {
     constructor(
-        private readonly prescriptionService: PrescriptionService,
-        @Inject('KAFKA_SERVICE')
-        private readonly kafkaClient: ClientKafka            
+        private readonly prescriptionService: PrescriptionService,          
     ) {}
 
     @EventPattern('stock.reserved.v1')
@@ -23,4 +21,6 @@ export class PrescriptionEventsConsumer {
             await this.prescriptionService.updatePrescriptionStatus(prescriptionId, PrescriptionStatus.HOLD);
         }
     }
+
+    
 }
