@@ -5,7 +5,7 @@ export class UpdatePrescriptionItemDto {
   @ApiPropertyOptional({ example: 'Amoxicillin', type: 'string' })
   @IsOptional()
   @IsString()
-  medicationName?: string;
+  medicineName?: string;
 
   @ApiPropertyOptional({ example: '500mg', type: 'string' })
   @IsOptional()

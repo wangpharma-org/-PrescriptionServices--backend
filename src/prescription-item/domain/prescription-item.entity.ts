@@ -19,28 +19,19 @@ export class PrescriptionItem extends BaseEntity {
   @JoinColumn({ name: 'prescription_id' })
   prescription: Prescription;
 
-    @Column({
-      name: 'status',
-      type: 'enum',
-      enum: PrescriptionItemStatus,
-      default: PrescriptionItemStatus.PENDING,
-    })
-    status: PrescriptionItemStatus;
+  @Column({
+    name: 'status',
+    type: 'enum',
+    enum: PrescriptionItemStatus,
+    default: PrescriptionItemStatus.PENDING,
+  })
+  status: PrescriptionItemStatus;
 
   @Column({ name: 'medicine_code', type: 'varchar' })
   medicineCode: string;
   
-  @Column({ name: 'medication_name', type: 'varchar' })
-  medicationName: string;
-
-  @Column({ name: 'dosage', type: 'varchar' })
-  dosage: string;
-
-  @Column({ name: 'frequency', type: 'varchar' })
-  frequency: string;
-
-  @Column({ name: 'duration', type: 'varchar' })
-  duration: string;
+  @Column({ name: 'medicine_name', type: 'varchar' })
+  medicineName: string;
 
   @Column({ name: 'quantity', type: 'int', nullable: true })
   quantity: number | null;

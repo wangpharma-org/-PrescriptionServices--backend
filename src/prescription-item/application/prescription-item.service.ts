@@ -30,10 +30,7 @@ export class PrescriptionItemService {
 
     const item = this.prescriptionItemRepository.create({
       prescriptionId,
-      medicationName: dto.medicationName,
-      dosage: dto.dosage,
-      frequency: dto.frequency,
-      duration: dto.duration,
+      medicineName: dto.medicineName,
       quantity: dto.quantity ?? null,
       unit: dto.unit ?? null,
       instructions: dto.instructions ?? null,
@@ -70,10 +67,7 @@ export class PrescriptionItemService {
   ): Promise<PrescriptionItem> {
     const item = await this.findById(id);
 
-    if (dto.medicationName !== undefined) item.medicationName = dto.medicationName;
-    if (dto.dosage !== undefined) item.dosage = dto.dosage;
-    if (dto.frequency !== undefined) item.frequency = dto.frequency;
-    if (dto.duration !== undefined) item.duration = dto.duration;
+    if (dto.medicineName !== undefined) item.medicineName = dto.medicineName;
     if (dto.quantity !== undefined) item.quantity = dto.quantity ?? null;
     if (dto.unit !== undefined) item.unit = dto.unit ?? null;
     if (dto.instructions !== undefined) item.instructions = dto.instructions ?? null;
