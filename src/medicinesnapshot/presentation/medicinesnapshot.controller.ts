@@ -8,7 +8,9 @@ import { MedicineSnapshot } from '../domain/medicinesnapshot.entity';
 @Controller('medicine-snapshots')
 @Public()
 export class MedicineSnapshotController {
-  constructor(private readonly medicineSnapshotService: MedicineSnapshotService) {}
+  constructor(
+    private readonly medicineSnapshotService: MedicineSnapshotService,
+  ) {}
 
   @ApiOperation({ summary: 'Get medicine snapshot by ID' })
   @Get(':id')
@@ -18,7 +20,9 @@ export class MedicineSnapshotController {
 
   @ApiOperation({ summary: 'Get medicine snapshot by medicine code' })
   @Get('code/:medicineCode')
-  findByMedicineCode(@Param('medicineCode') medicineCode: string): Promise<MedicineSnapshot | null> {
+  findByMedicineCode(
+    @Param('medicineCode') medicineCode: string,
+  ): Promise<MedicineSnapshot | null> {
     return this.medicineSnapshotService.findByMedicineCode(medicineCode);
   }
 }

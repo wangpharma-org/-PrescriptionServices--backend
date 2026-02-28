@@ -17,8 +17,10 @@ export class MedicineSnapshotService {
   ) {}
 
   async create(dto: CreateMedicineSnapshotDto): Promise<MedicineSnapshot> {
-    this.logger.log(`Creating new MedicineSnapshot for code: ${dto.medicineCode}`);
-    
+    this.logger.log(
+      `Creating new MedicineSnapshot for code: ${dto.medicineCode}`,
+    );
+
     const medicineSnapshot = this.medicineSnapshotRepository.create({
       id: dto.id,
       medicineCode: dto.medicineCode,
@@ -31,7 +33,7 @@ export class MedicineSnapshotService {
 
   async update(dto: UpdateMedicineSnapshotDto): Promise<MedicineSnapshot> {
     this.logger.log(`Updating existing MedicineSnapshot with id: ${dto.id}`);
-    
+
     return this.medicineSnapshotRepository.update(dto.id, {
       medicineCode: dto.medicineCode,
       medicineName_en: dto.medicineName_en ?? null,

@@ -12,7 +12,10 @@ import { MedicineSnapshotController } from './presentation/medicinesnapshot.cont
   controllers: [MedicineSnapshotEventsConsumer, MedicineSnapshotController],
   providers: [
     MedicineSnapshotService,
-    { provide: MEDICINE_SNAPSHOT_REPOSITORY, useClass: MedicineSnapshotRepository },
+    {
+      provide: MEDICINE_SNAPSHOT_REPOSITORY,
+      useClass: MedicineSnapshotRepository,
+    },
   ],
   exports: [MedicineSnapshotService],
 })
