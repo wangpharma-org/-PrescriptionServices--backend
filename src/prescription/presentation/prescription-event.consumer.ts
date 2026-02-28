@@ -4,6 +4,7 @@ import { PrescriptionService } from '../application/prescription.service';
 import { EventPattern } from '@nestjs/microservices/decorators/event-pattern.decorator';
 import { Payload } from '@nestjs/microservices/decorators/payload.decorator';
 import { PrescriptionStatus } from '../domain/prescription.entity';
+import { PrescriptionItemStatus } from 'src/prescription-item/domain/prescription-item.entity';
 
 @Controller()
 export class PrescriptionEventsConsumer {
@@ -17,7 +18,7 @@ export class PrescriptionEventsConsumer {
       `Received stock.reserved.v1 event for prescriptionId: ${prescriptionId} with reserveStatus: ${reserveStatus}`,
     );
 
-    if (reserveStatus === 'FAILED') {
+    if (reserveStatus === PrescriptionItemStatus.FAILED) {
       await this.prescriptionService.updatePrescriptionStatus(
         prescriptionId,
         PrescriptionStatus.HOLD,
