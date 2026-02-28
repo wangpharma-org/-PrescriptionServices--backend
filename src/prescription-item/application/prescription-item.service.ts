@@ -8,7 +8,10 @@ import {
   PRESCRIPTION_ITEM_REPOSITORY,
   type IPrescriptionItemRepository,
 } from '../domain/ports/prescription-item.repository.interface';
-import { PrescriptionItem } from '../domain/prescription-item.entity';
+import {
+  PrescriptionItem,
+  PrescriptionItemStatus,
+} from '../domain/prescription-item.entity';
 import { CreatePrescriptionItemDto } from '../presentation/dto/create-prescription-item.dto';
 import { UpdatePrescriptionItemDto } from '../presentation/dto/update-prescription-item.dto';
 import { PrescriptionService } from '../../prescription/application/prescription.service';
@@ -70,8 +73,18 @@ export class PrescriptionItemService {
     if (dto.medicineName !== undefined) item.medicineName = dto.medicineName;
     if (dto.quantity !== undefined) item.quantity = dto.quantity ?? null;
     if (dto.unit !== undefined) item.unit = dto.unit ?? null;
-    if (dto.instructions !== undefined) item.instructions = dto.instructions ?? null;
+    if (dto.instructions !== undefined)
+      item.instructions = dto.instructions ?? null;
 
+    return this.prescriptionItemRepository.save(item);
+  }
+
+  async updateStatus(
+    id: string,
+    status: PrescriptionItemStatus,
+  ): Promise<PrescriptionItem> {
+    const item = await this.findById(id);
+    item.status = status;
     return this.prescriptionItemRepository.save(item);
   }
 

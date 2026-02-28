@@ -9,7 +9,10 @@ import {
 } from 'class-validator';
 
 export class CreatePrescriptionItemByPrescriptionDto {
-  @ApiProperty({ example: '550e8400-e29b-41d4-a716-446655440000', type: 'string' })
+  @ApiProperty({
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    type: 'string',
+  })
   @IsUUID('4')
   @IsNotEmpty()
   medicineId: string;

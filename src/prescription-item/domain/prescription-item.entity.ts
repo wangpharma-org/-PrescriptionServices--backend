@@ -1,11 +1,13 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
-import { Prescription, PrescriptionStatus } from '../../prescription/domain/prescription.entity';
+import { Prescription } from '../../prescription/domain/prescription.entity';
 
 export enum PrescriptionItemStatus {
-  PENDING = "pending",
-  COMPLETED = "completed",
-  CANCELLED = "cancelled",
+  PENDING = 'pending',
+  RESERVED = 'reserved',
+  FAILED = 'failed',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
 }
 
 @Entity({ name: 'prescription_items' })
@@ -29,7 +31,7 @@ export class PrescriptionItem extends BaseEntity {
 
   @Column({ name: 'medicine_code', type: 'varchar' })
   medicineCode: string;
-  
+
   @Column({ name: 'medicine_name', type: 'varchar' })
   medicineName: string;
 

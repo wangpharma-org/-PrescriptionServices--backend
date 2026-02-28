@@ -12,7 +12,10 @@ import { PrescriptionModule } from '../prescription/prescription.module';
   controllers: [PrescriptionItemController],
   providers: [
     PrescriptionItemService,
-    { provide: PRESCRIPTION_ITEM_REPOSITORY, useClass: PrescriptionItemRepository },
+    {
+      provide: PRESCRIPTION_ITEM_REPOSITORY,
+      useClass: PrescriptionItemRepository,
+    },
   ],
   exports: [PrescriptionItemService],
 })
