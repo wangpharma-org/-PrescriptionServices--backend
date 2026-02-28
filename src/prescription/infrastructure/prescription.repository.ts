@@ -18,7 +18,6 @@ export class PrescriptionRepository implements IPrescriptionRepository {
     });
   }
 
-
   findAndCount(
     options: FindManyOptions<Prescription>,
   ): Promise<[Prescription[], number]> {

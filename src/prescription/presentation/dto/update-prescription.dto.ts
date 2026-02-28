@@ -1,10 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsEnum,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
 import { PrescriptionStatus } from '../../domain/prescription.entity';
 
 export class UpdatePrescriptionDto {

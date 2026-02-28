@@ -58,6 +58,4 @@ export class PrescriptionController {
   remove(@Param('id') id: string): Promise<void> {
     return this.prescriptionService.remove(id);
   }
-
-  
 }

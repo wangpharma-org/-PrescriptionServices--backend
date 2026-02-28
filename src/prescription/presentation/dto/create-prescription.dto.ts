@@ -56,7 +56,7 @@ export class CreatePrescriptionDto {
   @IsString()
   @IsNotEmpty()
   roomId?: string;
-  
+
   @ApiProperty({ type: [CreatePrescriptionItemByPrescriptionDto] })
   @IsArray()
   @ArrayMinSize(1)

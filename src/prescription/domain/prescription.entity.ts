@@ -3,20 +3,20 @@ import { BaseEntity } from '../../common/entities/base.entity';
 import { PrescriptionItem } from '../../prescription-item/domain/prescription-item.entity';
 
 export enum PrescriptionStatus {
-  CREATED = "created",         
-  WAITING_FOR_CART = "waiting_for_cart",    
-  PREPARING = "preparing",           
-  CHECKING = "checking",            
-  DISPENSING = "dispensing",            
-  CANCELLED = "cancelled",  
-  HOLD = "hold",
+  CREATED = 'created',
+  WAITING_FOR_CART = 'waiting_for_cart',
+  PREPARING = 'preparing',
+  CHECKING = 'checking',
+  DISPENSING = 'dispensing',
+  CANCELLED = 'cancelled',
+  HOLD = 'hold',
 }
 
 @Entity({ name: 'prescriptions' })
 export class Prescription extends BaseEntity {
   @Column({ name: 'vn', type: 'varchar', length: 255 })
   vn: string;
-  
+
   @Column({ name: 'hn', type: 'varchar', length: 255 })
   hn: string;
 
@@ -35,7 +35,7 @@ export class Prescription extends BaseEntity {
   @Column({ name: 'phone_number', type: 'varchar', length: 20 })
   phoneNumber: string;
 
-  @Column({ name: 'address', type: 'varchar', length: 500})
+  @Column({ name: 'address', type: 'varchar', length: 500 })
   address: string;
 
   @Column({ name: 'room_id', type: 'uuid', nullable: true })
