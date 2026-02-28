@@ -9,19 +9,19 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      transform: true,     
+      transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,
     }),
   );
-  
+
   const config = new DocumentBuilder()
     .setTitle('Prescription Service API')
     .setDescription('API documentation for the Prescription Service')
     .setVersion('1.0')
     .addTag('prescription')
     .build();
-    
+
   const document = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document());
 
@@ -35,13 +35,13 @@ async function bootstrap() {
       consumer: {
         groupId: 'prescription-service-consumer',
       },
-    }
-  })
+    },
+  });
 
   app.enableCors({
     origin: ['http://localhost:5173'],
     credentials: true,
-  })
+  });
 
   await app.startAllMicroservices();
   await app.listen(process.env.PORT ?? 3001);

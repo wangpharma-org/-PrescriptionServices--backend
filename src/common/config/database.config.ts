@@ -7,14 +7,16 @@ import { DataSourceOptions } from 'typeorm';
  */
 export const getDatabaseConfig = (): DataSourceOptions => {
   return {
-    type: (process.env.DATABASE_TYPE as 'postgres' | 'mysql' | 'sqlite') || 'postgres',
+    type:
+      (process.env.DATABASE_TYPE as 'postgres' | 'mysql' | 'sqlite') ||
+      'postgres',
     host: process.env.DATABASE_HOST || 'localhost',
     port: Number(process.env.DATABASE_PORT) || 5432,
     username: process.env.DATABASE_USER || 'myuser',
     password: process.env.DATABASE_PASSWORD || 'mypassword',
     database: process.env.DATABASE_NAME || 'prescriptiondb',
-    synchronize: true,
-    dropSchema: true,
+    synchronize: false,
+    // dropSchema: true,
   };
 };
 
