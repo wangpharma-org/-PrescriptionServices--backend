@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { PrescriptionModule } from './prescription/prescription.module';
 import { PrescriptionItemModule } from './prescription-item/prescription-item.module';
 import { MedicineSnapshotModule } from './medicinesnapshot/medicinesnapshot.module';
+import { StockSnapshotModule } from './stocksnapshot/stocksnapshot.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -26,6 +27,7 @@ import { getTypeOrmConfig } from './common/config/database.config';
     PrescriptionModule,
     PrescriptionItemModule,
     MedicineSnapshotModule,
+    StockSnapshotModule,
   ],
   controllers: [AppController],
   providers: [

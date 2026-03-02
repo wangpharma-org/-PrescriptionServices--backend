@@ -15,8 +15,8 @@ export const getDatabaseConfig = (): DataSourceOptions => {
     username: process.env.DATABASE_USER || 'myuser',
     password: process.env.DATABASE_PASSWORD || 'mypassword',
     database: process.env.DATABASE_NAME || 'prescriptiondb',
-    synchronize: false,
-    // dropSchema: true,
+    synchronize: true,
+    dropSchema: true,
   };
 };
 
