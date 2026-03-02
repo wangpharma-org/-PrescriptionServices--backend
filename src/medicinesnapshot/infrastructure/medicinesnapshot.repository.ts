@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { MedicineSnapshot } from '../domain/medicinesnapshot.entity';
 import { IMedicineSnapshotRepository } from '../domain/ports/medicinesnapshot.repository.interface';
 
@@ -19,6 +19,10 @@ export class MedicineSnapshotRepository implements IMedicineSnapshotRepository {
     medicineCode: string,
   ): Promise<MedicineSnapshot | null> {
     return this.repository.findOne({ where: { medicineCode } });
+  }
+
+  findAndCount(options: FindManyOptions<MedicineSnapshot>): Promise<[MedicineSnapshot[], number]> {
+    return this.repository.findAndCount(options);
   }
 
   create(data: Partial<MedicineSnapshot>): MedicineSnapshot {
