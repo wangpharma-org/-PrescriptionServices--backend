@@ -41,77 +41,115 @@ npm run migration:revert      # revert last migration
 
 ## Environment Variables
 
-The app requires a `.env` file with:
-
-```
-JWT_SECRET=<secret>
-JWT_EXPIRES_IN=<duration, e.g. 1d>
+```env
+PORT=3001
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
-DATABASE_USER=myuser
-DATABASE_PASSWORD=mypassword
-DATABASE_NAME=authdb
+DATABASE_USER=
+DATABASE_PASSWORD=
+DATABASE_NAME=prescriptiondb
 ```
 
-**Note:** `app.module.ts` has the TypeORM connection hardcoded (not reading env vars). `data-source.ts` reads from env and is used exclusively by the TypeORM migration CLI. `JWT_EXPIRES_IN` is consumed by `AuthModule`'s own `JwtModule` (not `app.module.ts`). The server port defaults to 3000 but can be overridden with a `PORT` env var.
+โค้ดอ่าน env แค่ 6 ตัวนี้ (`grep -rhoE "process\.env\.[A-Z_]+" src`)
+
+`app.module.ts` อ่าน `DATABASE_*` โดยมี `|| 'localhost'` เป็น fallback และตั้ง
+**`synchronize: true`** — ตารางถูกสร้าง/แก้อัตโนมัติจาก entity ใช้ได้เฉพาะ local
+เท่านั้น production ต้องปิดแล้วใช้ migration
+
+> `package.json` มี script `migration:generate` / `migration:run` / `seed:run` อยู่
+> แต่ `src/migrations/` **ยังว่าง 0 ไฟล์** — ยังไม่เคยใช้จริง
+
+---
 
 ## Architecture
 
-NestJS REST API authentication microservice backed by PostgreSQL via TypeORM.
+NestJS REST API + Kafka บน PostgreSQL ผ่าน TypeORM — จัดการใบสั่งยาและรายการยาในใบสั่ง
 
 ### Module structure
 
-- **AppModule** (`src/app.module.ts`) — root module; registers TypeORM (hardcoded Postgres config), global JwtModule (reads `JWT_SECRET` only), ConfigModule, and applies `APITokenValidationMiddleware` to all routes except `POST /auth/login`.
-- **AuthModule** (`src/api/auth/`) — registers its own `JwtModule` with both `JWT_SECRET` and `JWT_EXPIRES_IN`. `AuthService.validateLogin` uses `AuthRepository` to find the user by email, compares bcrypt hash, and returns a signed JWT.
-- **UsersModule** (`src/api/users/`) — manages the `User` entity. Exports `UsersService` for use by other modules. Handles user creation (bcrypt password hashing, duplicate-email enforcement), lookup by id/email, and paginated/filtered listing.
+- **AppModule** (`src/app.module.ts`) — root; ลงทะเบียน TypeORM (Postgres) + ConfigModule
+- **PrescriptionModule** (`src/prescription/`) — ใบสั่งยา
+- **PrescriptionItemModule** (`src/prescription-item/`) — รายการยาในใบสั่ง
+  (nested route ใต้ใบสั่ง)
 
-### Layer pattern (per module)
+### Layer pattern (ทุก module ใช้เหมือนกัน)
 
-Each feature module follows: **Controller → Service → Repository → TypeORM**
+โครงแบบ DDD 4 ชั้น:
 
-- Controllers hold no business logic — delegate entirely to the service.
-- Services contain all business logic and throw HTTP exceptions directly.
-- Repositories (`*.repository.ts`) wrap the TypeORM `Repository<T>` as plain injectable providers — they do **not** extend `Repository`.
+```
+<module>/
+├── domain/          entity + interface ของ repository
+├── application/     use case / service — logic อยู่ชั้นนี้
+├── infrastructure/  TypeORM repository implementation
+└── presentation/    controller + DTO
+```
 
-### Authentication flow
+**ห้ามข้ามชั้น** — controller เรียก application, application เรียก interface ของ
+repository ไม่ใช่ TypeORM ตรง ๆ
 
-1. All routes require a `Bearer <JWT>` token in the `Authorization` header, enforced by `APITokenValidationMiddleware`.
-2. The sole public endpoint is `POST /auth/login` — excluded from middleware.
-3. On successful login, `AuthService` signs a JWT with payload `{ sub: user.id, email }`.
+### Kafka
 
-### Common utilities (`src/common/`)
+`main.ts` เรียก `connectMicroservice(Transport.KAFKA)` + `startAllMicroservices()`
+service นี้เป็นทั้ง REST API และ Kafka client ในโปรเซสเดียว
 
-- `middleware/api-token-validation.middleware.ts` — global JWT guard.
-- `utils/pagination.util.ts` — `buildPaginationOptions` (skip/take) and `buildPaginationMeta` (total, page, limit, totalPages).
-- `utils/filter.util.ts` — `buildFilterOptions` converts a plain object into a TypeORM `where` clause.
+| ทิศทาง | topic | หมายเหตุ |
+|---|---|---|
+| publish | `prescription.created.v1` | ผู้รับคือ StockService |
+| consume | `stock.reserved.v1` | รู้ว่าจองสต็อกสำเร็จแล้ว |
+
+เป็น request/response แบบ async — ส่งใบสั่งไปแล้วรอ StockService ตอบกลับว่าจองได้ไหม
+ไม่ได้เรียก API ตรง
+
+### `src/common/` — ใช้ร่วมกันทั้ง 4 service ของ pharmacy-storage
+
+| ไฟล์ | ทำอะไร |
+|---|---|
+| `entities/base.entity.ts` | base ของทุก entity |
+| `guards/jwt-auth.guard.ts` | JWT guard |
+| `decorators/public.decorator.ts` | ยกเว้น endpoint ไม่ต้องใช้ JWT |
+| `decorators/current-user.decorator.ts` | ดึง user จาก token |
+| `services/hash.service.ts` | bcrypt |
+| `utils/pagination.util.ts` · `utils/filter.util.ts` | ตัวช่วย query |
 
 ### API endpoints
 
-| Method | Path | Auth required | Description |
-|--------|------|---------------|-------------|
-| POST | `/auth/login` | No | Returns `{ email, accessToken }` |
-| GET | `/users` | Yes | Paginated + filtered user list |
-| GET | `/users/:id` | Yes | Fetch user by id |
-| POST | `/users/check-create-user` | Yes | Create a user |
+| Method | Path |
+|---|---|
+| GET/POST/PATCH/DELETE | `/prescriptions` |
+| GET/POST/PATCH/DELETE | `/prescriptions/:prescriptionId/items` |
 
-### Key files
-
-| Path | Purpose |
-|------|---------|
-| `src/app.module.ts` | Root module, middleware wiring |
-| `src/common/middleware/api-token-validation.middleware.ts` | Global JWT guard |
-| `src/api/auth/auth.module.ts` | Auth module with JwtModule (uses JWT_EXPIRES_IN) |
-| `src/api/auth/auth.service.ts` | Login + JWT signing logic | 
-| `src/api/auth/auth.repository.ts` | Finds user by email for auth |
-| `src/api/users/users.service.ts` | User creation, lookup, paginated listing |
-| `src/api/users/users.repository.ts` | TypeORM wrapper for User queries |
-| `src/api/users/user.entity.ts` | `User` TypeORM entity |
-| `src/data-source.ts` | TypeORM DataSource for the migration CLI |
-| `src/migrations/` | TypeORM migration files |
+ทุก controller ใช้รูปแบบเดียวกัน: `GET /` (list) · `POST /` (create) ·
+`GET /:id` · `PATCH /:id` · `DELETE /:id`
 
 ### Swagger
 
-API docs available at `http://localhost:3000/api-docs` when running.
+`/api-docs` — สร้างจาก `DocumentBuilder` ใน `main.ts`
+
+> ⚠️ `setTitle()` ใน `main.ts` ของ repo นี้ตั้งเป็น **"Prescription Service API"**
+> ซึ่งไม่ตรงกับ service — ยังไม่ได้แก้ในการอัปเดตเอกสารครั้งนี้เพราะเป็นการแก้โค้ด
+> ควรเปิด PR แยก
+
+### ยังต้องให้ทีมเติม
+
+เอกสารส่วนนี้เขียนจากสิ่งที่ตรวจสอบได้จากโค้ดเท่านั้น ยังขาด:
+
+- business rule ที่ไม่ชัดจากโค้ด (เช่น เงื่อนไขการ reserve stock)
+- ทำไมถึงออกแบบเป็น event choreography แทน orchestration
+- ข้อควรระวัง/กับดักที่เจอตอนใช้งานจริง
+
+---
+
+> **event flow ทั้งกลุ่ม pharmacy-storage**
+>
+> ```
+> MedicineService ──medicine.created.v1──► StockService
+> PrescriptionSvc ──prescription.created.v1──► StockService
+> StockService    ──stock.reserved.v1──► PrescriptionService
+> ```
+>
+> ทั้งสามคุยกันผ่าน Kafka ล้วน ไม่มีการเรียก REST ข้ามระบบ
+
+---
 
 ## Rules
 
